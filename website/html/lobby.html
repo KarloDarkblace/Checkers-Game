@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Шашки - Лобби</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link href="https://fonts.googleapis.com/css2?family=Bakbak+One&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="header">
+        <h1><span class="checkers">CHECKERS</span> <br> <span class="online">ONLINE</span></h1>
+        <img src="../images/icon.png" alt="Checkers Icon" class="icon">
+    </div>
+
+    <div class="main-content">
+        <div class="nickname-section">
+            <label for="nickname" class="nickname-label">NICKNAME</label>
+            <input type="text" id="nickname" class="nickname-input" placeholder="Your nickname...">
+        </div>
+
+        <div class="rooms-section">
+            <table class="rooms-table">
+                <thead>
+                    <tr>
+                        <th>ROOM NAME</th>
+                        <th>PLAYERS</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>NICKNAME ROOM 1</td>
+                        <td>1/2</td>
+                        <td><img src="../images/locked.svg" alt="Locked Room" class="lock-icon"></td>
+                    </tr>
+                    <tr>
+                        <td>NICKNAME ROOM 2</td>
+                        <td>1/2</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>NICKNAME ROOM 3</td>
+                        <td>1/2</td>
+                        <td><img src="../images/locked.svg" alt="Locked Room" class="lock-icon"></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="buttons-section">
+                <button class="create-room-button">CREATE ROOM</button>
+                <div class="password-join-container" id="passwordJoinContainer">
+                    <input type="text" class="password-input" placeholder="PASSWORD" id="passwordInputField">
+                    <button class="join-button">JOIN</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <a href="https://github.com/your-github-profile" target="_blank" class="github-link">
+            <img src="../images/github.svg" alt="GitHub Icon" class="github-icon">
+        </a>
+        <div>made by EDUARD G.</div>
+    </div>
+
+    <div class="notification" id="notification">Please select a room before joining!</div>
+
+    <script src="../javascript/lobby.js" defer></script>
+</body>
+</html>
