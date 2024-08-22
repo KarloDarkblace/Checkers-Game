@@ -1,2 +1,2 @@
 # Checkers-Game
-Шахматы на GOLANG + JS (REST API)
+Шахматы на GOLANG + JS (REST API) :)
