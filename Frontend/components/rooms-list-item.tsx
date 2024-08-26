@@ -8,10 +8,12 @@ interface RoomsListItemProps {
 }
 
 export const RoomsListItem: FC<RoomsListItemProps> = ({ className, firstCol, secondCol }) => {
+  const style = "flex-[2_1] flex justify-center py-1";
+
   return (
-    <div className={cn(className, "w-full flex")}>
-      <div className="flex-[2_1] flex justify-center">{firstCol}</div>
-      <div className="flex-[1_1] flex justify-center">{secondCol}</div>
+    <div className={cn(className, "w-full flex border-b-2 border-gray-200")}>
+      <div className={style}>{firstCol}</div>
+      <div className={style}>{secondCol}</div>
     </div>
   );
 };

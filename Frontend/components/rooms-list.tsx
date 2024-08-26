@@ -40,17 +40,23 @@ const list = [
 
 export const RoomsList: FC<RoomsListProps> = ({ className }) => {
   return (
-    <div className="w-[600px] h-[400px] bg-white rounded-md overflow-auto">
-      <RoomsListItem className="text-2xl" firstCol="Room" secondCol="Players" />
-      {list.map((room) => (
-        <Fragment key={room.id}>
-          <RoomsListItem
-            className="text-xl"
-            firstCol={room.name}
-            secondCol={clsx(room.players, "/ 2")}
-          />
-        </Fragment>
-      ))}
+    <div className="w-full h-[500px] bg-white rounded-md flex flex-col overflow-hidden shadow-[0_0_50px] shadow-slate-500">
+      <RoomsListItem
+        className="bg-black text-white text-2xl font-bold pr-1 border-b-2 border-gray-800"
+        firstCol="Room"
+        secondCol="Players"
+      />
+      <div className="w-full overflow-auto">
+        {list.map((room) => (
+          <Fragment key={room.id}>
+            <RoomsListItem
+              className="text-xl"
+              firstCol={room.name}
+              secondCol={clsx(room.players, "/ 2")}
+            />
+          </Fragment>
+        ))}
+      </div>
     </div>
   );
 };
