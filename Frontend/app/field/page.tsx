@@ -12,6 +12,7 @@ const initialField = [
   ["", "b", "", "b", "", "b", "", "b"],
   ["b", "", "b", "", "b", "", "b", ""],
 ];
+const SIZE = 800;
 const BL_IN = "#333";
 const BL_OUT = "black";
 const WH_IN = "#ccc";
@@ -26,7 +27,6 @@ interface CheckerType {
 }
 
 export default function Field() {
-  const SIZE = 600;
   const cellSize = SIZE / 8;
   const checkerSize = cellSize * 0.7;
 
@@ -145,7 +145,8 @@ export default function Field() {
   return (
     <div className="w-screen h-screen flex items-center justify-center">
       <div
-        className={`h-[${SIZE}px] w-[${SIZE}px] outline-black relative grid grid-cols-8 grid-rows-8`}
+        className={`relative grid grid-cols-8 grid-rows-8`}
+        style={{ height: SIZE, width: SIZE }}
         onClick={onClickHandler}
       >
         {drawField()}
