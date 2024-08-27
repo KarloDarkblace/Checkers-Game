@@ -1,9 +1,9 @@
 "use client";
 
-import { MouseEvent, useEffect, useRef, useState } from "react";
+import { FC, MouseEvent, useState } from "react";
 
 const initialField = [
-  ["", "w", "", "w", "", "w", "", "w"],
+  ["", "", "", "w", "", "w", "", "w"],
   ["w", "", "", "", "w", "", "w", ""],
   ["", "w", "", "w", "", "", "", "w"],
   ["", "", "", "", "", "", "", ""],
@@ -12,7 +12,7 @@ const initialField = [
   ["", "b", "", "b", "", "b", "", "b"],
   ["b", "", "b", "", "b", "", "b", ""],
 ];
-const SIZE = 800;
+
 const BL_IN = "#333";
 const BL_OUT = "black";
 const WH_IN = "#ccc";
@@ -24,18 +24,17 @@ interface CheckerType {
   x: number;
   y: number;
   color: "w" | "b" | "t";
+  isQueen: boolean;
 }
 
-export default function Field() {
-  const cellSize = SIZE / 8;
-  const checkerSize = cellSize * 0.7;
-
+export const Field: FC<{ fieldSize: number }> = ({ fieldSize }) => {
   const [field, setField] = useState(initialField);
   const [repeatMove, setRepeatMove] = useState(false);
   const [playerColor, setPlayerColor] = useState<"w" | "b">("b");
-  const [currentCoords, setCurrentCoords] = useState<CheckerType | undefined>();
+  const [currentChecker, setCurrentChecker] = useState<CheckerType | null>(null);
 
-  const checkMove = (x: number, y: number) => {
+  const checkFreeMove = (x: number, y: number) => {
+    if (y === 0) return;
     if (x > 0 && field[y - 1][x - 1] === "") {
       field[y - 1][x - 1] = "t";
     }
@@ -44,10 +43,25 @@ export default function Field() {
     }
   };
 
-  const checkFight = (x: number, y: number) => {
+  const checkFreeQueenMove = (x: number, y: number) => {
+    for (let i = 1; x - i >= 0 && y - i >= 0 && field[y - i][x - i] === ""; i++) {
+      field[y - i][x - i] = "t";
+    }
+    for (let i = 1; x + i <= 7 && y - i >= 0 && field[y - i][x + i] === ""; i++) {
+      field[y - i][x + i] = "t";
+    }
+    for (let i = 1; x - i >= 0 && y + i <= 7 && field[y + i][x - i] === ""; i++) {
+      field[y + i][x - i] = "t";
+    }
+    for (let i = 1; x + i <= 7 && y + i <= 7 && field[y + i][x + i] === ""; i++) {
+      field[y + i][x + i] = "t";
+    }
+  };
+
+  const checkFightMove = (x: number, y: number): boolean => {
     const enemyColor = playerColor === "w" ? "b" : "w";
-    if (y === 0) return;
     let isFighting = false;
+
     if (field[y - 1][x - 1] === enemyColor && y - 2 >= 0 && field[y - 2][x - 2] === "") {
       field[y - 2][x - 2] = "t";
       isFighting = true;
@@ -64,7 +78,38 @@ export default function Field() {
       field[y + 2][x + 2] = "t";
       isFighting = true;
     }
-    if (!isFighting) checkMove(x, y);
+    return isFighting;
+  };
+
+  const checkFightQueenMove = (x: number, y: number): boolean => {
+    const enemyColor = playerColor === "w" ? "b" : "w";
+    let isFighting = false;
+    let firstCheck = false;
+
+    let i = 1;
+    while (y - i >= 0 && x - i >= 0) {
+      if (field[y - i][x - i] === playerColor) break;
+      if (field[y - i][x - i] === "") field[y - i][x - i] = "t";
+      if (field[y - i][x - i] === enemyColor) {
+        if (!firstCheck && y - i > 0 && field[y - i - 1][x - i - 1] === "") {
+          clearTempCheckers();
+          firstCheck = true;
+          isFighting = true;
+        } else {
+          break;
+        }
+      }
+      i++;
+    }
+    return isFighting;
+  };
+
+  const checkNextMove = (x: number, y: number, isQueen: boolean) => {
+    if (isQueen) {
+      if (!checkFightQueenMove(x, y)) checkFreeQueenMove(x, y);
+    } else {
+      if (!checkFightMove(x, y)) checkFreeMove(x, y);
+    }
     // checkMove(x, y);
   };
 
@@ -81,23 +126,22 @@ export default function Field() {
     const x = Math.floor((e.clientX - rect.left) / (rect.width / 8));
     const y = Math.floor((e.clientY - rect.top) / (rect.height / 8));
 
-    if (!currentCoords && field[y][x] === "") {
+    if (!currentChecker && field[y][x] === "") {
       return;
     }
     if (field[y][x] === playerColor) {
-      // if (field[y][x] === playerColor) {
       clearTempCheckers();
-      setCurrentCoords({ x, y, color: field[y][x] as CheckerType["color"] });
-      checkFight(x, y);
+      setCurrentChecker({ x, y, color: field[y][x] as CheckerType["color"], isQueen: false });
+      checkNextMove(x, y, false); // проверка дамки
       setField([...field]);
       return;
     }
-    if (currentCoords && field[y][x] === "t") {
+    if (currentChecker && field[y][x] === "t") {
       clearTempCheckers(); // придет с сервера, не нужно очищать
-      field[currentCoords.y][currentCoords.x] = "";
-      field[y][x] = currentCoords.color;
+      field[currentChecker.y][currentChecker.x] = "";
+      field[y][x] = currentChecker.color;
       setField([...field]);
-      setCurrentCoords(undefined);
+      setCurrentChecker(null);
     }
   };
 
@@ -111,6 +155,9 @@ export default function Field() {
   };
 
   const drawFigures = () => {
+    const cellSize = fieldSize / 8;
+    const checkerSize = cellSize * 0.7;
+
     return (
       <div className="absolute w-full h-full grid grid-cols-8 grid-rows-8">
         {field.map((row, y) => {
@@ -126,7 +173,7 @@ export default function Field() {
                 key={`checkers-${x}${y}`}
                 className={`absolute rounded-full flex items-center justify-center`}
                 style={{
-                  opacity: cell === "t" ? 0.3 : 1,
+                  opacity: cell === "t" ? 0.2 : 1,
                   border: `${checkerSize * 0.15}px solid ${outerColor}`,
                   backgroundColor: innerColor,
                   left: cellSize * x + cellSize / 2 - checkerSize / 2,
@@ -143,15 +190,13 @@ export default function Field() {
   };
 
   return (
-    <div className="w-screen h-screen flex items-center justify-center">
-      <div
-        className={`relative grid grid-cols-8 grid-rows-8`}
-        style={{ height: SIZE, width: SIZE }}
-        onClick={onClickHandler}
-      >
-        {drawField()}
-        {drawFigures()}
-      </div>
+    <div
+      className={"relative grid grid-cols-8 grid-rows-8 aspect-square"}
+      style={{ height: fieldSize, width: fieldSize }}
+      onClick={onClickHandler}
+    >
+      {drawField()}
+      {drawFigures()}
     </div>
   );
-}
+};

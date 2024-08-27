@@ -12,13 +12,15 @@ export const LowerButtons: FC<LowerButtonsProps> = ({ className }) => {
 
   return (
     <div className="flex w-full justify-between">
-      <button className={buttonStyle}>CREATE ROOM</button>
       <input
         className="bg-white p-2 rounded-lg outline-none"
         type="text"
         placeholder="Enter your nickname..."
       />
-      <button className={buttonStyle}>JOIN</button>
+      <div className="flex gap-2">
+        <button className={buttonStyle}>CREATE ROOM</button>
+        <button className={buttonStyle}>JOIN</button>
+      </div>
     </div>
   );
 };
