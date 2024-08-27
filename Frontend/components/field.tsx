@@ -131,8 +131,8 @@ export const Field: FC<{ fieldSize: number }> = ({ fieldSize }) => {
     }
     if (field[y][x] === playerColor) {
       clearTempCheckers();
-      setCurrentChecker({ x, y, color: field[y][x] as CheckerType["color"], isQueen: false });
-      checkNextMove(x, y, false); // проверка дамки
+      setCurrentChecker({ x, y, color: field[y][x] as CheckerType["color"], isQueen: true });
+      checkNextMove(x, y, true); // проверка дамки
       setField([...field]);
       return;
     }

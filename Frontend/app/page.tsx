@@ -1,8 +1,24 @@
+"use client";
+
 import { LowerButtons } from "@/components/lower-buttons";
 import { RoomsList } from "@/components/rooms-list";
+import useSocket from "@/lib/socket";
 import Image from "next/image";
+import { useEffect } from "react";
 
 export default function Home() {
+  const socket = useSocket();
+
+  useEffect(() => {
+    socket?.on("connect", () => {
+      console.log("Connected");
+    });
+
+    socket?.on("message", () => {});
+
+    socket?.emit("joinRoom", "XXX");
+  });
+
   return (
     <main className="w-screen h-screen flex flex-col items-center justify-center gap-10">
       <div className="flex flex-col  gap-4 justify-center items-center">
