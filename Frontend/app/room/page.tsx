@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 export default function Room() {
   const [fieldSize, setFieldSize] = useState(0);
   const [isVertical, setIsVertical] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const fieldSizeCalc = () => {
@@ -35,19 +36,25 @@ export default function Room() {
     };
     window.addEventListener("resize", handleResize);
 
+    setIsLoading(true);
+
     return () => {
       window.removeEventListener("resize", handleResize);
     };
   }, [isVertical]);
 
   return (
-    <div
-      className={`w-screen h-screen ${
-        isVertical ? "flex flex-col" : "flex"
-      } items-center justify-center gap-10`}
-    >
-      <Chat fieldSize={fieldSize} isVertical={isVertical} />
-      <Field fieldSize={fieldSize} />
-    </div>
+    <>
+      {isLoading && (
+        <div
+          className={`w-screen h-screen ${
+            isVertical ? "flex flex-col" : "flex"
+          } items-center justify-center gap-10`}
+        >
+          <Chat fieldSize={fieldSize} isVertical={isVertical} />
+          <Field fieldSize={fieldSize} />
+        </div>
+      )}
+    </>
   );
 }

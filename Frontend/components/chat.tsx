@@ -1,6 +1,6 @@
 "use client";
 
-import useSocket from "@/lib/socket";
+import { useSocket } from "@/lib/hooks";
 import { FC, useEffect, useState } from "react";
 
 export const Chat: FC<{ fieldSize: number; isVertical: boolean }> = ({ fieldSize, isVertical }) => {

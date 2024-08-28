@@ -1,5 +1,6 @@
 "use client";
 
+import { useSound } from "@/lib/hooks";
 import { FC, MouseEvent, useState } from "react";
 
 const initialField = [
@@ -32,6 +33,8 @@ export const Field: FC<{ fieldSize: number }> = ({ fieldSize }) => {
   const [repeatMove, setRepeatMove] = useState(false);
   const [playerColor, setPlayerColor] = useState<"w" | "b">("b");
   const [currentChecker, setCurrentChecker] = useState<CheckerType | null>(null);
+
+  const playSound = useSound("/checker2.mp3");
 
   const checkFreeMove = (x: number, y: number) => {
     if (y === 0) return;
@@ -142,6 +145,7 @@ export const Field: FC<{ fieldSize: number }> = ({ fieldSize }) => {
       field[y][x] = currentChecker.color;
       setField([...field]);
       setCurrentChecker(null);
+      playSound();
     }
   };
 
