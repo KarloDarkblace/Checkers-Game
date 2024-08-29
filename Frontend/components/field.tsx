@@ -1,6 +1,7 @@
 "use client";
 
 import { useSound } from "@/lib/hooks";
+import { cn } from "@/lib/utils";
 import { FC, MouseEvent, useState } from "react";
 
 const initialField = [
@@ -13,6 +14,9 @@ const initialField = [
   ["", "b", "", "b", "", "b", "", "b"],
   ["b", "", "b", "", "b", "", "b", ""],
 ];
+
+const row = [" ", "A", "B", "C", "D", "E", "F", "G", "H", " "];
+const col = ["1", "2", "3", "4", "5", "6", "7", "8"];
 
 const BL_IN = "#333";
 const BL_OUT = "black";
@@ -193,14 +197,44 @@ export const Field: FC<{ fieldSize: number }> = ({ fieldSize }) => {
     );
   };
 
+  const asideStyle = "flex bg-black text-white text-2xl justify-around items-center";
+
+  const drawRow = () => {
+    return (
+      <div className={cn(asideStyle, "py-5 h-12")}>
+        {row.map((row) => (
+          <div key={row}>{row}</div>
+        ))}
+      </div>
+    );
+  };
+
+  const drawCol = () => {
+    return (
+      <div className={cn(asideStyle, "flex-col px-5 w-12")}>
+        {col.map((row) => (
+          <div key={row}>{row}</div>
+        ))}
+      </div>
+    );
+  };
+
   return (
-    <div
-      className={"relative grid grid-cols-8 grid-rows-8 aspect-square"}
-      style={{ height: fieldSize, width: fieldSize }}
-      onClick={onClickHandler}
-    >
-      {drawField()}
-      {drawFigures()}
+    <div className="flex flex-col shadow-[0_0_50px] shadow-slate-500">
+      {drawRow()}
+      <div className="flex">
+        {drawCol()}
+        <div
+          className={"relative grid grid-cols-8 grid-rows-8 aspect-square"}
+          style={{ height: fieldSize, width: fieldSize }}
+          onClick={onClickHandler}
+        >
+          {drawField()}
+          {drawFigures()}
+        </div>
+        {drawCol()}
+      </div>
+      {drawRow()}
     </div>
   );
 };
