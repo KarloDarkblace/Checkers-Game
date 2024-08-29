@@ -1,12 +1,21 @@
-import { FC, Fragment } from "react";
+"use client";
+
+import { FC, Fragment, useState } from "react";
 import { RoomsListItem } from "./rooms-list-item";
 import clsx from "clsx";
+import { LowerButtons } from "./lower-buttons";
 
 interface RoomsListProps {
   className?: string;
 }
 
-const list = [
+export interface IListItem {
+  id: number;
+  name: string;
+  players: number;
+}
+
+const list: IListItem[] = [
   { id: 1, name: "Room 1", players: 2 },
   { id: 2, name: "Room 2", players: 2 },
   { id: 3, name: "Room 3", players: 2 },
@@ -39,24 +48,33 @@ const list = [
 ];
 
 export const RoomsList: FC<RoomsListProps> = ({ className }) => {
+  const [roomList, setRoomlist] = useState(list);
+  const [chosenRoom, setChosenRoom] = useState(0);
+
   return (
-    <div className="w-full h-[500px] bg-white rounded-md flex flex-col overflow-hidden shadow-[0_0_50px] shadow-slate-500">
-      <RoomsListItem
-        className="bg-black text-white text-2xl font-bold pr-1 border-b-2 border-gray-800"
-        firstCol="Room"
-        secondCol="Players"
-      />
-      <div className="w-full overflow-auto">
-        {list.map((room) => (
-          <Fragment key={room.id}>
-            <RoomsListItem
-              className="text-xl"
-              firstCol={room.name}
-              secondCol={clsx(room.players, "/ 2")}
-            />
-          </Fragment>
-        ))}
+    <>
+      <div className="w-full h-[500px] bg-white rounded-md flex flex-col overflow-hidden shadow-[0_0_50px] shadow-slate-500">
+        <RoomsListItem
+          className="bg-black text-white text-2xl font-bold pr-1 border-b-2 border-gray-800"
+          firstCol="Room"
+          secondCol="Players"
+        />
+        <div className="w-full overflow-auto">
+          {roomList.map((room) => (
+            <Fragment key={room.id}>
+              <RoomsListItem
+                id={room.id}
+                className="text-xl"
+                firstCol={room.name}
+                secondCol={clsx(room.players.toString(), "/ 2")}
+                isChosen={chosenRoom === room.id ? true : false}
+                setChosenRoom={setChosenRoom}
+              />
+            </Fragment>
+          ))}
+        </div>
       </div>
-    </div>
+      <LowerButtons chosenRoom={chosenRoom} roomList={roomList} setRoomlist={setRoomlist} />
+    </>
   );
 };

@@ -34,7 +34,7 @@ export const Field: FC<{ fieldSize: number }> = ({ fieldSize }) => {
   const [playerColor, setPlayerColor] = useState<"w" | "b">("b");
   const [currentChecker, setCurrentChecker] = useState<CheckerType | null>(null);
 
-  const playSound = useSound("/checker2.mp3");
+  const playSound = useSound("/checker.mp3");
 
   const checkFreeMove = (x: number, y: number) => {
     if (y === 0) return;
