@@ -4,10 +4,7 @@ import { FC, Fragment, useState } from "react";
 import { RoomsListItem } from "./rooms-list-item";
 import clsx from "clsx";
 import { LowerButtons } from "./lower-buttons";
-
-interface RoomsListProps {
-  className?: string;
-}
+import { cn } from "@/lib/utils";
 
 export interface IListItem {
   id: number;
@@ -47,15 +44,23 @@ const list: IListItem[] = [
   { id: 29, name: "Room 29", players: 2 },
 ];
 
-export const RoomsList: FC<RoomsListProps> = ({ className }) => {
+interface RoomsListProps {
+  className?: string;
+  isMobile: boolean;
+}
+
+export const RoomsList: FC<RoomsListProps> = ({ isMobile }) => {
   const [roomList, setRoomlist] = useState(list);
   const [chosenRoom, setChosenRoom] = useState(0);
 
   return (
     <>
-      <div className="w-full h-[500px] bg-white rounded-md flex flex-col overflow-hidden shadow-[0_0_50px] shadow-slate-500">
+      <div className="w-full h-[350px] md:h-[480px] bg-white rounded-md flex flex-col overflow-hidden shadow-[0_0_50px] shadow-slate-500">
         <RoomsListItem
-          className="bg-black text-white text-2xl font-bold pr-1 border-b-2 border-gray-800"
+          className={cn(
+            isMobile ? "text-lg" : "text-2xl",
+            "bg-black text-white font-bold pr-1 border-b-2 border-gray-800"
+          )}
           firstCol="Room"
           secondCol="Players"
         />
@@ -64,7 +69,7 @@ export const RoomsList: FC<RoomsListProps> = ({ className }) => {
             <Fragment key={room.id}>
               <RoomsListItem
                 id={room.id}
-                className="text-xl"
+                className={isMobile ? "text-md" : "text-xl"}
                 firstCol={room.name}
                 secondCol={clsx(room.players.toString(), "/ 2")}
                 isChosen={chosenRoom === room.id ? true : false}
@@ -74,7 +79,12 @@ export const RoomsList: FC<RoomsListProps> = ({ className }) => {
           ))}
         </div>
       </div>
-      <LowerButtons chosenRoom={chosenRoom} roomList={roomList} setRoomlist={setRoomlist} />
+      <LowerButtons
+        chosenRoom={chosenRoom}
+        roomList={roomList}
+        setRoomlist={setRoomlist}
+        isMobile={isMobile}
+      />
     </>
   );
 };

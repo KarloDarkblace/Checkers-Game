@@ -1,105 +1,109 @@
 "use client";
 
 import { useSound } from "@/lib/hooks";
-import { cn } from "@/lib/utils";
+import { clearTempCheckers, cn } from "@/lib/utils";
 import { FC, MouseEvent, useState } from "react";
+import { Figures } from "./figures";
 
 const initialField = [
-  ["", "", "", "w", "", "w", "", "w"],
-  ["w", "", "", "", "w", "", "w", ""],
-  ["", "w", "", "w", "", "", "", "w"],
-  ["", "", "", "", "", "", "", ""],
-  ["", "", "", "", "", "", "", ""],
-  ["b", "", "b", "", "b", "", "b", ""],
-  ["", "b", "", "b", "", "b", "", "b"],
-  ["b", "", "b", "", "b", "", "b", ""],
+  [0, 0, 0, 1, 0, 1, 0, 1],
+  [1, 0, 0, 0, 1, 0, 1, 0],
+  [0, 1, 0, 1, 0, 0, 0, 1],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [2, 0, 2, 0, 2, 0, 2, 0],
+  [0, 2, 0, 2, 0, 2, 0, 2],
+  [2, 0, 2, 0, 2, 0, 2, 0],
 ];
+/*
+0 - пустая
+1 - белая
+2 - черная
+3 - белая королева
+4 - черная королева
+*/
 
-const row = [" ", "A", "B", "C", "D", "E", "F", "G", "H", " "];
-const col = ["1", "2", "3", "4", "5", "6", "7", "8"];
+const marginRow = [" ", "A", "B", "C", "D", "E", "F", "G", "H", " "];
+const marginColumn = ["8", "7", "6", "5", "4", "3", "2", "1"];
 
-const BL_IN = "#333";
-const BL_OUT = "black";
-const WH_IN = "#ccc";
-const WH_OUT = "white";
 const BL_CELL = "#769656";
 const WH_CELL = "#ffcb87";
 
 interface CheckerType {
   x: number;
   y: number;
-  color: "w" | "b" | "t";
+  color: 1 | 2 | 9;
   isQueen: boolean;
 }
 
 export const Field: FC<{ fieldSize: number }> = ({ fieldSize }) => {
   const [field, setField] = useState(initialField);
   const [repeatMove, setRepeatMove] = useState(false);
-  const [playerColor, setPlayerColor] = useState<"w" | "b">("b");
+  const [playerColor, setPlayerColor] = useState<1 | 2>(2);
   const [currentChecker, setCurrentChecker] = useState<CheckerType | null>(null);
 
   const playSound = useSound("/checker.mp3");
 
   const checkFreeMove = (x: number, y: number) => {
     if (y === 0) return;
-    if (x > 0 && field[y - 1][x - 1] === "") {
-      field[y - 1][x - 1] = "t";
+    if (x > 0 && field[y - 1][x - 1] === 0) {
+      field[y - 1][x - 1] = 9;
     }
-    if (x < 7 && field[y - 1][x + 1] === "") {
-      field[y - 1][x + 1] = "t";
+    if (x < 7 && field[y - 1][x + 1] === 0) {
+      field[y - 1][x + 1] = 9;
     }
   };
 
   const checkFreeQueenMove = (x: number, y: number) => {
-    for (let i = 1; x - i >= 0 && y - i >= 0 && field[y - i][x - i] === ""; i++) {
-      field[y - i][x - i] = "t";
+    for (let i = 1; x - i >= 0 && y - i >= 0 && field[y - i][x - i] === 0; i++) {
+      field[y - i][x - i] = 9;
     }
-    for (let i = 1; x + i <= 7 && y - i >= 0 && field[y - i][x + i] === ""; i++) {
-      field[y - i][x + i] = "t";
+    for (let i = 1; x + i <= 7 && y - i >= 0 && field[y - i][x + i] === 0; i++) {
+      field[y - i][x + i] = 9;
     }
-    for (let i = 1; x - i >= 0 && y + i <= 7 && field[y + i][x - i] === ""; i++) {
-      field[y + i][x - i] = "t";
+    for (let i = 1; x - i >= 0 && y + i <= 7 && field[y + i][x - i] === 0; i++) {
+      field[y + i][x - i] = 9;
     }
-    for (let i = 1; x + i <= 7 && y + i <= 7 && field[y + i][x + i] === ""; i++) {
-      field[y + i][x + i] = "t";
+    for (let i = 1; x + i <= 7 && y + i <= 7 && field[y + i][x + i] === 0; i++) {
+      field[y + i][x + i] = 9;
     }
   };
 
   const checkFightMove = (x: number, y: number): boolean => {
-    const enemyColor = playerColor === "w" ? "b" : "w";
+    const enemyColor = playerColor === 1 ? 2 : 1;
     let isFighting = false;
 
-    if (field[y - 1][x - 1] === enemyColor && y - 2 >= 0 && field[y - 2][x - 2] === "") {
-      field[y - 2][x - 2] = "t";
+    if (field[y - 1][x - 1] === enemyColor && y - 2 >= 0 && field[y - 2][x - 2] === 0) {
+      field[y - 2][x - 2] = 9;
       isFighting = true;
     }
-    if (field[y - 1][x + 1] === enemyColor && y - 2 >= 0 && field[y - 2][x + 2] === "") {
-      field[y - 2][x + 2] = "t";
+    if (field[y - 1][x + 1] === enemyColor && y - 2 >= 0 && field[y - 2][x + 2] === 0) {
+      field[y - 2][x + 2] = 9;
       isFighting = true;
     }
-    if (y < 6 && field[y + 1][x - 1] === enemyColor && field[y + 2][x - 2] === "") {
-      field[y + 2][x - 2] = "t";
+    if (y < 6 && field[y + 1][x - 1] === enemyColor && field[y + 2][x - 2] === 0) {
+      field[y + 2][x - 2] = 9;
       isFighting = true;
     }
-    if (y < 6 && field[y + 1][x + 1] === enemyColor && field[y + 2][x + 2] === "") {
-      field[y + 2][x + 2] = "t";
+    if (y < 6 && field[y + 1][x + 1] === enemyColor && field[y + 2][x + 2] === 0) {
+      field[y + 2][x + 2] = 9;
       isFighting = true;
     }
     return isFighting;
   };
 
   const checkFightQueenMove = (x: number, y: number): boolean => {
-    const enemyColor = playerColor === "w" ? "b" : "w";
+    const enemyColor = playerColor === 1 ? 2 : 1;
     let isFighting = false;
     let firstCheck = false;
 
     let i = 1;
     while (y - i >= 0 && x - i >= 0) {
       if (field[y - i][x - i] === playerColor) break;
-      if (field[y - i][x - i] === "") field[y - i][x - i] = "t";
+      if (field[y - i][x - i] === 0) field[y - i][x - i] = 9;
       if (field[y - i][x - i] === enemyColor) {
-        if (!firstCheck && y - i > 0 && field[y - i - 1][x - i - 1] === "") {
-          clearTempCheckers();
+        if (!firstCheck && y - i > 0 && field[y - i - 1][x - i - 1] === 0) {
+          clearTempCheckers(field);
           firstCheck = true;
           isFighting = true;
         } else {
@@ -120,32 +124,24 @@ export const Field: FC<{ fieldSize: number }> = ({ fieldSize }) => {
     // checkMove(x, y);
   };
 
-  const clearTempCheckers = () => {
-    for (let y = 0; y < 8; y++) {
-      for (let x = 0; x < 8; x++) {
-        if (field[y][x] === "t") field[y][x] = "";
-      }
-    }
-  };
-
   const onClickHandler = (e: MouseEvent) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = Math.floor((e.clientX - rect.left) / (rect.width / 8));
     const y = Math.floor((e.clientY - rect.top) / (rect.height / 8));
 
-    if (!currentChecker && field[y][x] === "") {
+    if (!currentChecker && field[y][x] === 0) {
       return;
     }
     if (field[y][x] === playerColor) {
-      clearTempCheckers();
+      clearTempCheckers(field);
       setCurrentChecker({ x, y, color: field[y][x] as CheckerType["color"], isQueen: true });
       checkNextMove(x, y, true); // проверка дамки
       setField([...field]);
       return;
     }
-    if (currentChecker && field[y][x] === "t") {
-      clearTempCheckers(); // придет с сервера, не нужно очищать
-      field[currentChecker.y][currentChecker.x] = "";
+    if (currentChecker && field[y][x] === 9) {
+      clearTempCheckers(field); // придет с сервера, не нужно очищать
+      field[currentChecker.y][currentChecker.x] = 0;
       field[y][x] = currentChecker.color;
       setField([...field]);
       setCurrentChecker(null);
@@ -162,58 +158,36 @@ export const Field: FC<{ fieldSize: number }> = ({ fieldSize }) => {
     });
   };
 
-  const drawFigures = () => {
-    const cellSize = fieldSize / 8;
-    const checkerSize = cellSize * 0.7;
+  const asideStyle = "flex bg-black text-white text-2xl justify-around items-center text-center";
 
+  const drawMarginRow = (keyAdd: string) => {
     return (
-      <div className="absolute w-full h-full grid grid-cols-8 grid-rows-8">
-        {field.map((row, y) => {
-          return row.map((cell, x) => {
-            if (cell === "") {
-              return null;
-            }
-            const outerColor = cell === "b" || cell === "t" ? BL_OUT : WH_OUT;
-            const innerColor = cell === "b" || cell === "t" ? BL_IN : WH_IN;
-
-            return (
-              <div
-                key={`checkers-${x}${y}`}
-                className={`absolute rounded-full flex items-center justify-center`}
-                style={{
-                  opacity: cell === "t" ? 0.2 : 1,
-                  border: `${checkerSize * 0.15}px solid ${outerColor}`,
-                  backgroundColor: innerColor,
-                  left: cellSize * x + cellSize / 2 - checkerSize / 2,
-                  top: cellSize * y + cellSize / 2 - checkerSize / 2,
-                  width: checkerSize,
-                  height: checkerSize,
-                }}
-              ></div>
-            );
-          });
-        })}
-      </div>
-    );
-  };
-
-  const asideStyle = "flex bg-black text-white text-2xl justify-around items-center";
-
-  const drawRow = () => {
-    return (
-      <div className={cn(asideStyle, "py-5 h-12")}>
-        {row.map((row) => (
-          <div key={row}>{row}</div>
+      <div
+        className={cn(
+          asideStyle,
+          fieldSize < 600
+            ? "h-8 grid grid-cols-[2rem_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_2rem] text-lg"
+            : "h-12 grid grid-cols-[3rem_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_3rem]"
+        )}
+      >
+        {marginRow.map((row, i) => (
+          <div key={row + keyAdd + i}>{row}</div>
         ))}
       </div>
     );
   };
 
-  const drawCol = () => {
+  const drawMarginColumn = (keyAdd: string) => {
     return (
-      <div className={cn(asideStyle, "flex-col px-5 w-12")}>
-        {col.map((row) => (
-          <div key={row}>{row}</div>
+      <div
+        className={cn(
+          asideStyle,
+          fieldSize < 600 ? "w-8 text-lg" : "w-12",
+          "grid grid-rows-[1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr]"
+        )}
+      >
+        {marginColumn.map((row) => (
+          <div key={row + keyAdd}>{row}</div>
         ))}
       </div>
     );
@@ -221,20 +195,20 @@ export const Field: FC<{ fieldSize: number }> = ({ fieldSize }) => {
 
   return (
     <div className="flex flex-col shadow-[0_0_50px] shadow-slate-500">
-      {drawRow()}
+      {drawMarginRow("top")}
       <div className="flex">
-        {drawCol()}
+        {drawMarginColumn("left")}
         <div
           className={"relative grid grid-cols-8 grid-rows-8 aspect-square"}
           style={{ height: fieldSize, width: fieldSize }}
           onClick={onClickHandler}
         >
           {drawField()}
-          {drawFigures()}
+          <Figures field={field} fieldSize={fieldSize} />
         </div>
-        {drawCol()}
+        {drawMarginColumn("right")}
       </div>
-      {drawRow()}
+      {drawMarginRow("bottom")}
     </div>
   );
 };
