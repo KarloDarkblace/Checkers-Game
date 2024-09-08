@@ -1,12 +1,18 @@
-import { FC, Fragment } from "react";
+"use client";
+
+import { FC, Fragment, useState } from "react";
 import { RoomsListItem } from "./rooms-list-item";
 import clsx from "clsx";
+import { LowerButtons } from "./lower-buttons";
+import { cn } from "@/lib/utils";
 
-interface RoomsListProps {
-  className?: string;
+export interface IListItem {
+  id: number;
+  name: string;
+  players: number;
 }
 
-const list = [
+const list: IListItem[] = [
   { id: 1, name: "Room 1", players: 2 },
   { id: 2, name: "Room 2", players: 2 },
   { id: 3, name: "Room 3", players: 2 },
@@ -38,19 +44,47 @@ const list = [
   { id: 29, name: "Room 29", players: 2 },
 ];
 
-export const RoomsList: FC<RoomsListProps> = ({ className }) => {
+interface RoomsListProps {
+  className?: string;
+  isMobile: boolean;
+}
+
+export const RoomsList: FC<RoomsListProps> = ({ isMobile }) => {
+  const [roomList, setRoomlist] = useState(list);
+  const [chosenRoom, setChosenRoom] = useState(0);
+
   return (
-    <div className="w-[600px] h-[400px] bg-white rounded-md overflow-auto">
-      <RoomsListItem className="text-2xl" firstCol="Room" secondCol="Players" />
-      {list.map((room) => (
-        <Fragment key={room.id}>
-          <RoomsListItem
-            className="text-xl"
-            firstCol={room.name}
-            secondCol={clsx(room.players, "/ 2")}
-          />
-        </Fragment>
-      ))}
-    </div>
+    <>
+      <div className="w-full h-[350px] md:h-[480px] bg-white rounded-md flex flex-col overflow-hidden shadow-[0_0_50px] shadow-slate-500">
+        <RoomsListItem
+          className={cn(
+            isMobile ? "text-lg" : "text-2xl",
+            "bg-black text-white font-bold pr-1 border-b-2 border-gray-800"
+          )}
+          firstCol="Room"
+          secondCol="Players"
+        />
+        <div className="w-full overflow-auto">
+          {roomList.map((room) => (
+            <Fragment key={room.id}>
+              <RoomsListItem
+                id={room.id}
+                className={isMobile ? "text-md" : "text-xl"}
+                firstCol={room.name}
+                secondCol={clsx(room.players.toString(), "/ 2")}
+                isChosen={chosenRoom === room.id ? true : false}
+                setChosenRoom={setChosenRoom}
+              />
+            </Fragment>
+          ))}
+        </div>
+      </div>
+      <LowerButtons
+        chosenRoom={chosenRoom}
+        roomList={roomList}
+        setRoomlist={setRoomlist}
+        isMobile={isMobile}
+      />
+    </>
   );
 };
