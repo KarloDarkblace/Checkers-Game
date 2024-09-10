@@ -74,7 +74,7 @@ func setupRouter(logger *slog.Logger, roomHandler *handlers.RoomHandler) http.Ha
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
-	r.Get("/ws/rooms", roomHandler.ServeWs)
+	r.Get("/ws/checkers", roomHandler.ServeWs)
 
 	return r
 }

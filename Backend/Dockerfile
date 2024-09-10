@@ -12,6 +12,8 @@ WORKDIR /app
 
 COPY . .
 
-RUN go build -o app main.go
+RUN go mod tidy
+
+RUN go build -o app cmd/checkers/main.go
 
 CMD ["./app"]
