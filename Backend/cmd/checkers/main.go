@@ -5,6 +5,7 @@ import (
 	"checkers-backend/internal/handlers"
 	"checkers-backend/internal/repository"
 	"fmt"
+	"github.com/go-chi/cors"
 	"io"
 	"log/slog"
 	"net/http"
@@ -69,12 +70,21 @@ func createLogFile() *os.File {
 func setupRouter(logger *slog.Logger, roomHandler *handlers.RoomHandler) http.Handler {
 	r := chi.NewRouter()
 
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	}))
+
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
-	r.Get("/ws/rooms", roomHandler.ServeWs)
+	r.Get("/ws/checkers", roomHandler.ServeWs)
 
 	return r
 }

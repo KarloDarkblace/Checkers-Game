@@ -19,21 +19,30 @@ func NewRoomRepository() *RoomRepository {
 	}
 }
 
-func (r *RoomRepository) CreateRoom(playerName string, password string) *models.Room {
+const (
+	MAX_PLAYERS = 2
+)
+
+func (r *RoomRepository) CreateRoom(playerName string, password string, pieceType models.PieceType, conn *websocket.Conn) *models.Room {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+
+	player := models.Player{
+		Nickname:   playerName,
+		PieceType:  pieceType,
+		Connection: conn,
+	}
 
 	room := &models.Room{
 		ID:          uuid.New().String(),
 		Name:        playerName + " ROOM",
 		Password:    password,
-		Players:     []string{playerName},
-		MaxPlayers:  2,
+		Players:     []models.Player{player},
 		GameStarted: false,
 		Messages:    []models.Message{},
-		Connections: make(map[string]*websocket.Conn),
 	}
 	r.rooms[room.ID] = room
+
 	return room
 }
 
@@ -45,18 +54,28 @@ func (r *RoomRepository) GetRoom(id string) (*models.Room, bool) {
 	return room, exists
 }
 
-func (r *RoomRepository) AddPlayerToRoom(roomID string, playerID string, conn *websocket.Conn) bool {
+func (r *RoomRepository) AddPlayerToRoom(roomID string, playerName string, conn *websocket.Conn) bool {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	room, exists := r.rooms[roomID]
-	if !exists || len(room.Players) >= room.MaxPlayers {
+	if !exists || len(room.Players) >= MAX_PLAYERS {
 		return false
 	}
 
-	room.Players = append(room.Players, playerID)
-	room.Connections[playerID] = conn
-	if len(room.Players) == room.MaxPlayers {
+	player := models.Player{
+		Nickname:   playerName,
+		Connection: conn,
+	}
+
+	if room.Players[0].PieceType == models.WhitePawn {
+		player.PieceType = models.BlackPawn
+	} else {
+		player.PieceType = models.WhitePawn
+	}
+
+	room.Players = append(room.Players, player)
+	if len(room.Players) == MAX_PLAYERS {
 		room.GameStarted = true
 	}
 
@@ -90,8 +109,38 @@ func (r *RoomRepository) AddMessageToRoom(roomID string, sender string, content 
 	}
 
 	room.Messages = append(room.Messages, message)
+}
 
-	for _, conn := range room.Connections {
-		conn.WriteJSON(message)
+func (r *RoomRepository) DeleteRoom(roomID string) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	delete(r.rooms, roomID)
+}
+
+func (r *RoomRepository) RemovePlayerFromRoom(roomID string, conn *websocket.Conn) bool {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	room, exists := r.rooms[roomID]
+	if !exists {
+		return false
 	}
+
+	for i, player := range room.Players {
+		if player.Connection == conn {
+			room.Players = append(room.Players[:i], room.Players[i+1:]...)
+			if room.GameStarted && len(room.Players) == 1 {
+				room.Winner = &room.Players[0]
+			}
+			break
+		}
+	}
+
+	if len(room.Players) == 0 {
+		delete(r.rooms, roomID)
+		return true
+	}
+
+	return true
 }

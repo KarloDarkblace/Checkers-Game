@@ -4,8 +4,8 @@ type PieceType int
 
 const (
 	Empty PieceType = iota
-	WhitePiece
-	BlackPiece
+	WhitePawn
+	BlackPawn
 	WhiteKing
 	BlackKing
 )
@@ -30,7 +30,7 @@ func NewBoard() *Board {
 	for row := 0; row < 3; row++ {
 		for col := 0; col < 8; col++ {
 			if (row+col)%2 == 1 {
-				board.Cells[row][col] = WhitePiece
+				board.Cells[row][col] = BlackPawn
 			}
 		}
 	}
@@ -38,7 +38,7 @@ func NewBoard() *Board {
 	for row := 5; row < 8; row++ {
 		for col := 0; col < 8; col++ {
 			if (row+col)%2 == 1 {
-				board.Cells[row][col] = BlackPiece
+				board.Cells[row][col] = WhitePawn
 			}
 		}
 	}

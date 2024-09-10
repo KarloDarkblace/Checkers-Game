@@ -1,7 +1,9 @@
 package models
 
+import "github.com/gorilla/websocket"
+
 type Player struct {
-	ID       string `json:"id"`
-	Nickname string `json:"nickname"`
-	RoomID   string `json:"room_id"`
+	Nickname   string          `json:"nickname"`
+	PieceType  PieceType       `json:"piece_type"`
+	Connection *websocket.Conn `json:"-"`
 }
