@@ -5,11 +5,11 @@ export const useSocket = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
-    // const newSocket = io("http://localhost:8080");
-    // setSocket(newSocket);
-    // return () => {
-    //   newSocket.disconnect();
-    // };
+    const newSocket = io("http://localhost:3010");
+    setSocket(newSocket);
+    return () => {
+      newSocket.disconnect();
+    };
   }, []);
 
   return socket;

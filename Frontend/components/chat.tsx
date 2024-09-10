@@ -18,11 +18,12 @@ const messages = [
 ];
 
 export const Chat: FC<ChatProps> = ({ fieldSize, isVertical }) => {
-  const socket = useSocket();
   const [inputMessage, setInputMessage] = useState("");
   const [messageList, setMessageList] = useState(messages);
 
   const messageListRef = useRef<HTMLDivElement | null>(null);
+
+  const socket = useSocket();
 
   useEffect(() => {
     socket?.on("connect", () => {
@@ -33,6 +34,8 @@ export const Chat: FC<ChatProps> = ({ fieldSize, isVertical }) => {
   const sendMessage = () => {
     if (inputMessage) {
       socket?.emit("message", inputMessage);
+      console.log(socket);
+
       setMessageList([
         ...messageList,
         {
