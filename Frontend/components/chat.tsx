@@ -25,22 +25,41 @@ export const Chat: FC<ChatProps> = ({ fieldSize, isVertical }) => {
 
   const socket = useSocket();
 
-  useEffect(() => {
-    socket?.on("connect", () => {
-      console.log("Connected");
-    });
-  });
+  // useEffect(() => {
+  //   socket?.on("connect", () => {
+  //     console.log("Connected");
+  //   });
+  // });
+
+  const send = (inputMessage: string) => {
+    if (socket) {
+      socket.send(
+        JSON.stringify({
+          action: "send_message",
+          room_id: "0",
+          sender: "333",
+          content: inputMessage,
+        })
+      );
+    }
+  };
+
+  if (socket) {
+    socket.onmessage = (e) => console.log(JSON.parse(e.data));
+  }
 
   const sendMessage = () => {
     if (inputMessage) {
-      socket?.emit("message", inputMessage);
-      console.log(socket);
+      send(inputMessage);
 
       setMessageList([
         ...messageList,
         {
           text: inputMessage,
-          date: new Date().toLocaleTimeString("ru", { hour: "2-digit", minute: "2-digit" }),
+          date: new Date().toLocaleTimeString("ru", {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
           sender: "Me",
         },
       ]);

@@ -13,13 +13,34 @@ export default function Home() {
 
   const socket = useSocket();
 
+  const send = (inputNickname: string) => {
+    if (socket) {
+      socket.send(
+        JSON.stringify({
+          action: "create_room",
+          nickname: inputNickname,
+          password: "",
+          piece_type: "white",
+        })
+      );
+    }
+  };
+
+  if (socket) {
+    socket.onmessage = (e) => console.log(JSON.parse(e.data));
+  }
+
   useEffect(() => {
-    // socket?.on("connect", () => {
-    //   console.log("Connected");
-    // });
-    // socket?.on("message", () => {});
-    // socket?.emit("joinRoom", "XXX");
-  });
+    if (socket) {
+      socket.onclose = () => {
+        console.log("Подключение окончено");
+      };
+    }
+    return () => {
+      socket?.close();
+      console.log("Подключение прервано");
+    };
+  }, [socket]);
 
   useEffect(() => {
     const isMobile = () => {
@@ -57,12 +78,21 @@ export default function Home() {
           <div className="flex flex-col gap-2 md:gap-4 justify-center items-center mb-3">
             <Image src="/log.svg" width={imgSize} height={imgSize} alt="logo" />
             <div className="flex flex-col items-center font-bold text-white">
-              <span className={isMobile ? "text-4xl" : " md:text-6xl"}>CHECKERS</span>
-              <span className={isMobile ? "text-2xl" : " md:text-4xl"}>ONLINE</span>
+              <span className={isMobile ? "text-4xl" : " md:text-6xl"}>
+                CHECKERS
+              </span>
+              <span className={isMobile ? "text-2xl" : " md:text-4xl"}>
+                ONLINE
+              </span>
             </div>
           </div>
-          <div className={cn(isMobile ? "w-[95%]" : "w-[600px]", "flex flex-col gap-2 md:gap-4")}>
-            <RoomsList isMobile={isMobile} />
+          <div
+            className={cn(
+              isMobile ? "w-[95%]" : "w-[600px]",
+              "flex flex-col gap-2 md:gap-4"
+            )}
+          >
+            <RoomsList isMobile={isMobile} send={send} />
           </div>
         </main>
       )}

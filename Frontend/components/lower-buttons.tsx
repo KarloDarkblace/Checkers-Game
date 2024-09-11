@@ -10,6 +10,7 @@ interface LowerButtonsProps {
   chosenRoom: number;
   roomList: IListItem[];
   setRoomlist: (roomList: IListItem[]) => void;
+  send: (inputNickname: string) => void;
 }
 
 export const LowerButtons: FC<LowerButtonsProps> = ({
@@ -17,12 +18,19 @@ export const LowerButtons: FC<LowerButtonsProps> = ({
   roomList,
   isMobile,
   setRoomlist,
+  send,
 }) => {
   const [inputNickname, setInputNickname] = useState("");
 
   const createRoomHandler = () => {
-    if (inputNickname)
-      setRoomlist([...roomList, { id: roomList.length + 1, name: inputNickname, players: 0 }]);
+    if (inputNickname) {
+      send(inputNickname);
+      setRoomlist([
+        ...roomList,
+        { id: roomList.length + 1, name: inputNickname, players: 0 },
+      ]);
+      window.location.pathname = "/room/";
+    }
   };
 
   const joinRoomHandler = () => {
@@ -33,7 +41,12 @@ export const LowerButtons: FC<LowerButtonsProps> = ({
     "bg-white p-2 rounded-lg font-bold active:scale-95 transitionshadow-[0_0_50px] shadow-slate-500";
 
   return (
-    <div className={cn(isMobile ? "flex-col" : "", "flex gap-2  w-full justify-between")}>
+    <div
+      className={cn(
+        isMobile ? "flex-col" : "",
+        "flex gap-2  w-full justify-between"
+      )}
+    >
       <input
         className="bg-white p-2 rounded-lg outline-none flex-grow"
         type="text"

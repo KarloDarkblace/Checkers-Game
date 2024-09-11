@@ -47,9 +47,10 @@ const list: IListItem[] = [
 interface RoomsListProps {
   className?: string;
   isMobile: boolean;
+  send: (inputNickname: string) => void;
 }
 
-export const RoomsList: FC<RoomsListProps> = ({ isMobile }) => {
+export const RoomsList: FC<RoomsListProps> = ({ isMobile, send }) => {
   const [roomList, setRoomlist] = useState(list);
   const [chosenRoom, setChosenRoom] = useState(0);
 
@@ -84,6 +85,7 @@ export const RoomsList: FC<RoomsListProps> = ({ isMobile }) => {
         roomList={roomList}
         setRoomlist={setRoomlist}
         isMobile={isMobile}
+        send={send}
       />
     </>
   );
