@@ -2,13 +2,15 @@ import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
 export const useSocket = () => {
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const [socket, setSocket] = useState<WebSocket | null>(null);
 
   useEffect(() => {
-    const newSocket = io("http://localhost:3010");
+    const newSocket = new WebSocket("ws://localhost:8080/ws/checkers");
+    // const newSocket = io("ws://localhost:8080/ws/checkers", { forceNew: true });
     setSocket(newSocket);
+
     return () => {
-      newSocket.disconnect();
+      // newSocket.close();
     };
   }, []);
 

@@ -14,13 +14,11 @@ export default function Home() {
   const socket = useSocket();
 
   useEffect(() => {
-    socket?.on("connect", () => {
-      console.log("Connected");
-    });
-
-    socket?.on("message", () => {});
-
-    socket?.emit("joinRoom", "XXX");
+    // socket?.on("connect", () => {
+    //   console.log("Connected");
+    // });
+    // socket?.on("message", () => {});
+    // socket?.emit("joinRoom", "XXX");
   });
 
   useEffect(() => {
