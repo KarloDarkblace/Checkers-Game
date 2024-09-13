@@ -29,7 +29,7 @@ export const LowerButtons: FC<LowerButtonsProps> = ({
         ...roomList,
         { id: roomList.length + 1, name: inputNickname, players: 0 },
       ]);
-      window.location.pathname = "/room/";
+      // window.location.pathname = "/room/";
     }
   };
 

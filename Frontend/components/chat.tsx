@@ -4,6 +4,7 @@ import { useSocket } from "@/lib/hooks";
 import Image from "next/image";
 import { FC, KeyboardEvent, useEffect, useRef, useState } from "react";
 import { MessagesList } from "./messages-list";
+import EmojiPicker from "emoji-picker-react";
 
 interface ChatProps {
   fieldSize: number;
@@ -14,22 +15,19 @@ const messages = [
   { text: "Привет", date: "12:00", sender: "Me" },
   { text: "Привет!", date: "12:01", sender: "Ken" },
   { text: "Чо, как оно?", date: "12:02", sender: "Me" },
-  { text: "Да норм", date: "12:03", sender: "Ken" },
+  { text: "Да норм😁", date: "12:03", sender: "Ken" },
 ];
 
 export const Chat: FC<ChatProps> = ({ fieldSize, isVertical }) => {
   const [inputMessage, setInputMessage] = useState("");
   const [messageList, setMessageList] = useState(messages);
+  const [isEmojiOpen, setIsEmojiOpen] = useState(false);
+
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   const messageListRef = useRef<HTMLDivElement | null>(null);
 
   const socket = useSocket();
-
-  // useEffect(() => {
-  //   socket?.on("connect", () => {
-  //     console.log("Connected");
-  //   });
-  // });
 
   const send = (inputMessage: string) => {
     if (socket) {
@@ -48,9 +46,21 @@ export const Chat: FC<ChatProps> = ({ fieldSize, isVertical }) => {
     socket.onmessage = (e) => console.log(JSON.parse(e.data));
   }
 
+  useEffect(() => {
+    const listenerHandler = () => {
+      setWindowWidth(window.innerWidth);
+    };
+    window.addEventListener("resize", listenerHandler);
+
+    return () => {
+      window.removeEventListener("resize", listenerHandler);
+    };
+  }, []);
+
   const sendMessage = () => {
     if (inputMessage) {
       send(inputMessage);
+      setIsEmojiOpen(false);
 
       setMessageList([
         ...messageList,
@@ -78,8 +88,12 @@ export const Chat: FC<ChatProps> = ({ fieldSize, isVertical }) => {
 
   return (
     <div
-      className={`flex flex-col items-center justify-center gap-4`}
-      style={{ width: fieldSize * 0.8, height: fieldSize }}
+      className={`flex flex-col items-center gap-4`}
+      style={
+        windowWidth > 1280
+          ? { width: fieldSize * 0.8, height: fieldSize }
+          : { width: "95%", height: "85%" }
+      }
     >
       <div className="text-white flex justify-center items-center">
         <span className="text-3xl font-bold">ЧАТИК</span>
@@ -99,6 +113,18 @@ export const Chat: FC<ChatProps> = ({ fieldSize, isVertical }) => {
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyDown={keyDownHandler}
             placeholder="message..."
+          />
+          <div
+            className="cursor-pointer"
+            onClick={() => setIsEmojiOpen(!isEmojiOpen)}
+          >
+            <Image src={"/emoji.png"} alt="emoji" width={24} height={24} />
+          </div>
+          <EmojiPicker
+            open={isEmojiOpen}
+            style={{ position: "absolute", bottom: "60px", right: "10px" }}
+            onEmojiClick={(e) => setInputMessage((prev) => prev + e.emoji)}
+            lazyLoadEmojis={true}
           />
           <button className="active:scale-95 transition" onClick={sendMessage}>
             <Image src={"/send.png"} alt="send" width={24} height={24} />

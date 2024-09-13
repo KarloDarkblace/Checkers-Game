@@ -33,12 +33,12 @@ export default function Home() {
   useEffect(() => {
     if (socket) {
       socket.onclose = () => {
-        console.log("Подключение окончено");
+        console.log("Подключение прервано");
       };
     }
     return () => {
       socket?.close();
-      console.log("Подключение прервано");
+      console.log("Подключение окончено");
     };
   }, [socket]);
 
@@ -76,7 +76,7 @@ export default function Home() {
       {isLoading && (
         <main className="w-screen flex flex-col items-center justify-center gap-4 py-6">
           <div className="flex flex-col gap-2 md:gap-4 justify-center items-center mb-3">
-            <Image src="/log.svg" width={imgSize} height={imgSize} alt="logo" />
+            {/* <Image src="/log.svg" width={imgSize} height={imgSize} alt="logo" /> */}
             <div className="flex flex-col items-center font-bold text-white">
               <span className={isMobile ? "text-4xl" : " md:text-6xl"}>
                 CHECKERS

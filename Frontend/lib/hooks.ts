@@ -7,7 +7,7 @@ export const useSocket = () => {
     const newSocket = new WebSocket("ws://localhost:8080/ws/checkers");
     setSocket(newSocket);
     newSocket.onopen = () => {
-      console.log("Socket connected");
+      console.log("Подключение установлено");
     };
   }, []);
 

@@ -84,13 +84,13 @@ export default function Room() {
               <div
                 className={cn(
                   isChatOpened ? "left-0" : "left-[-3000px]",
-                  "fixed w-screen h-screen bg-neutral-800 flex items-center justify-center overflow-hidden transition-all duration-300"
+                  "fixed w-screen h-screen bg-neutral-800 flex pt-3 justify-center overflow-hidden transition-all duration-300"
                 )}
               >
                 <Chat fieldSize={fieldSize} isVertical={isVertical} />
               </div>
               <button
-                className="absolute bottom-5 right-5 text-white focus:outline-none"
+                className="absolute bottom-3 right-3 text-white focus:outline-none"
                 onClick={() => setIsChatOpened(!isChatOpened)}
               >
                 <Image
