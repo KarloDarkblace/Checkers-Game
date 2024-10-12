@@ -14,11 +14,20 @@ import (
 type RoomHandler struct {
 	Repo             *repository.RoomRepository
 	disconnectTimers map[string]*time.Timer
+	lobbyConnections map[string]*websocket.Conn
+}
+
+func NewRoomHandler(repo *repository.RoomRepository) *RoomHandler {
+	return &RoomHandler{
+		Repo:             repo,
+		disconnectTimers: make(map[string]*time.Timer),
+		lobbyConnections: make(map[string]*websocket.Conn),
+	}
 }
 
 type Response struct {
-	Type    string `json:"type"`
-	Message string `json:"message"`
+	Type string                 `json:"type"`
+	Data map[string]interface{} `json:"data"`
 }
 
 var upgrader = websocket.Upgrader{
@@ -28,6 +37,12 @@ var upgrader = websocket.Upgrader{
 }
 
 func (h *RoomHandler) ServeWs(w http.ResponseWriter, r *http.Request) {
+	playerID := r.Header.Get("PlayerID")
+	if playerID == "" {
+		http.Error(w, "PlayerID is required in headers", http.StatusBadRequest)
+		return
+	}
+
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		http.Error(w, "Could not upgrade to WebSocket", http.StatusInternalServerError)
@@ -35,6 +50,8 @@ func (h *RoomHandler) ServeWs(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.Close()
 	defer h.handleDisconnect(conn)
+
+	h.handleConnect(conn, playerID)
 
 	for {
 		_, message, err := conn.ReadMessage()
@@ -71,6 +88,40 @@ func (h *RoomHandler) ServeWs(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *RoomHandler) handleConnect(conn *websocket.Conn, playerID string) {
+	var response Response
+
+	room := h.findRoomByPlayerID(playerID)
+
+	if room != nil {
+		for i := range room.Players {
+			if room.Players[i].ID == playerID {
+				room.Players[i].Connection = conn
+				break
+			}
+		}
+
+		response = Response{
+			Type: "reconnect",
+			Data: map[string]interface{}{
+				"message": "Room found by PlayerID.",
+				"room":    room,
+			},
+		}
+	} else {
+		h.lobbyConnections[playerID] = conn
+		response = Response{
+			Type: "no_room_found",
+			Data: map[string]interface{}{
+				"message": "No room associated with this PlayerID.",
+				"rooms":   h.Repo.GetRooms(),
+			},
+		}
+	}
+
+	sendJSONResponse(conn, response)
+}
+
 func (h *RoomHandler) handleCreateRoom(conn *websocket.Conn, request map[string]interface{}) {
 	name, _ := request["nickname"].(string)
 	password, _ := request["password"].(string)
@@ -95,11 +146,25 @@ func (h *RoomHandler) handleCreateRoom(conn *websocket.Conn, request map[string]
 	room.Game = models.NewGame()
 
 	response := Response{
-		Type:    "success",
-		Message: "Room created successfully",
+		Type: "success",
+		Data: map[string]interface{}{
+			"message": "Room created successfully",
+		},
 	}
 
 	sendJSONResponse(conn, response)
+
+	rooms := h.Repo.GetRooms()
+	response = Response{
+		Type: "rooms_updated",
+		Data: map[string]interface{}{
+			"rooms": rooms,
+		},
+	}
+
+	for _, conn := range h.lobbyConnections {
+		sendJSONResponse(conn, response)
+	}
 }
 
 func (h *RoomHandler) handleJoinRoom(conn *websocket.Conn, request map[string]interface{}) {
@@ -135,33 +200,27 @@ func (h *RoomHandler) handleGetRooms(conn *websocket.Conn) {
 }
 
 func (h *RoomHandler) handleSendMessage(conn *websocket.Conn, request map[string]interface{}) {
-	roomID, _ := request["room_id"].(string)
 	sender, _ := request["sender"].(string)
 	content, _ := request["content"].(string)
 
-	if roomID == "" || sender == "" || content == "" {
+	if sender == "" || content == "" {
 		sendErrorMessage(conn, "Room ID, sender, and content are required")
 		return
 	}
 
-	h.Repo.AddMessageToRoom(roomID, sender, content)
+	room := h.findRoomByConnection(conn)
 
-	room, exists := h.Repo.GetRoom(roomID)
-	if !exists {
-		sendErrorMessage(conn, "Room not found")
-		return
-	}
+	h.Repo.AddMessageToRoom(room, sender, content)
 
-	message := models.Message{
-		Sender:  sender,
-		Content: content,
-		Time:    time.Now().Format("15:04:05"),
+	response := Response{
+		Type: "message_update",
+		Data: map[string]interface{}{
+			"messages": room.Messages,
+		},
 	}
 
 	for _, player := range room.Players {
-		if err := player.Connection.WriteJSON(message); err != nil {
-			sendErrorMessage(player.Connection, "Failed to send message to player")
-		}
+		sendJSONResponse(player.Connection, response)
 	}
 }
 
@@ -252,17 +311,21 @@ func (h *RoomHandler) declareWinner(room *models.Room, winnerPieceType models.Pi
 	if winner != nil {
 		room.Winner = winner
 
-		sendJSONResponse(winner.Connection, Response{
-			Type:    "game_end",
-			Message: "You won because your opponent ran out of pieces.",
-		})
+		winnerResponse := map[string]interface{}{
+			"type":    "game_end",
+			"message": "You won because your opponent ran out of pieces.",
+		}
+
+		sendJSONResponse(winner.Connection, winnerResponse)
 
 		for _, player := range room.Players {
 			if player.PieceType != winnerPieceType {
-				sendJSONResponse(player.Connection, Response{
-					Type:    "game_end",
-					Message: "You lost because you ran out of pieces.",
-				})
+				loserResponse := map[string]interface{}{
+					"type":    "game_end",
+					"message": "You lost because you ran out of pieces.",
+				}
+
+				sendJSONResponse(player.Connection, loserResponse)
 			}
 		}
 	}
@@ -334,9 +397,12 @@ func isPlayerTurn(game *models.Game, player *models.Player) bool {
 
 func sendErrorMessage(conn *websocket.Conn, message string) {
 	response := Response{
-		Type:    "error",
-		Message: message,
+		Type: "error",
+		Data: map[string]interface{}{
+			"message": message,
+		},
 	}
+
 	sendJSONResponse(conn, response)
 }
 
@@ -346,5 +412,30 @@ func sendJSONResponse(conn *websocket.Conn, response interface{}) {
 		conn.WriteMessage(websocket.TextMessage, []byte(`{"type": "error", "message": "Internal server error"}`))
 		return
 	}
+
 	conn.WriteMessage(websocket.TextMessage, data)
+}
+
+func (h *RoomHandler) findRoomByPlayerID(playerID string) *models.Room {
+	for _, room := range h.Repo.GetRooms() {
+		for _, player := range room.Players {
+			if player.ID == playerID {
+				return room
+			}
+		}
+	}
+
+	return nil
+}
+
+func (h *RoomHandler) findRoomByConnection(conn *websocket.Conn) *models.Room {
+	for _, room := range h.Repo.GetRooms() {
+		for _, player := range room.Players {
+			if player.Connection == conn {
+				return room
+			}
+		}
+	}
+
+	return nil
 }

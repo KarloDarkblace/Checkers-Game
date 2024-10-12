@@ -22,7 +22,7 @@ func main() {
 	logger := setupLogger()
 
 	roomRepo := repository.NewRoomRepository()
-	roomHandler := &handlers.RoomHandler{Repo: roomRepo}
+	roomHandler := handlers.NewRoomHandler(roomRepo)
 
 	r := setupRouter(logger, roomHandler)
 

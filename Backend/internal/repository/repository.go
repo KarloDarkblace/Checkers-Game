@@ -93,14 +93,9 @@ func (r *RoomRepository) GetRooms() []*models.Room {
 	return rooms
 }
 
-func (r *RoomRepository) AddMessageToRoom(roomID string, sender string, content string) {
+func (r *RoomRepository) AddMessageToRoom(room *models.Room, sender string, content string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-
-	room, exists := r.rooms[roomID]
-	if !exists {
-		return
-	}
 
 	message := models.Message{
 		Sender:  sender,
